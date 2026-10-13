@@ -28,6 +28,15 @@ Flip the **Master switch**, hit **Refetch**, and watch the app degrade gracefull
 - **Tailwind is optional** — only the `ChaosControlPanel` UI uses it. The injectors, provider, and programmatic API work in any React app without Tailwind
 - **fetch-based networking** — the network injector patches `window.fetch`. Requests made through XHR or axios's default adapter are not intercepted (yet)
 
+> **Tailwind v4 users:** Tailwind does not scan `node_modules` by default, so the panel's classes won't be generated unless you register the package as a source. In your CSS entry file:
+>
+> ```css
+> @import "tailwindcss";
+> @source "../node_modules/chaos-on-front/dist-lib";
+> ```
+>
+> (Path is relative to the CSS file — adjust if yours lives elsewhere, e.g. `../../node_modules/...`.) Without this, the panel still works but renders unstyled.
+
 ### Option 1: Install from npm (recommended)
 
 ```bash
