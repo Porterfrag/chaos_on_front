@@ -28,18 +28,18 @@ Flip the **Master switch**, hit **Refetch**, and watch the app degrade gracefull
 - **Tailwind is optional** — only the `ChaosControlPanel` UI uses it. The injectors, provider, and programmatic API work in any React app without Tailwind
 - **fetch-based networking** — the network injector patches `window.fetch`. Requests made through XHR or axios's default adapter are not intercepted (yet)
 
-### Option 1: Copy the source (works today)
+### Option 1: Install from npm (recommended)
 
-The package isn't on npm yet, so the fastest path is copying the library folder:
+```bash
+npm install -D chaos-on-front zustand
+```
 
-1. Copy `src/lib/` from this repo into your project (e.g. `your-app/src/lib/`).
-2. Install the peer dependency: `npm install zustand`.
-3. Add Tailwind **only if** you want the built-in control panel. Skip it if you'll drive chaos from your own dev toolbar.
+A dev-only install is appropriate — neither the provider nor the panel should be mounted in production builds.
 
 Then wire it up at your app's root:
 
 ```tsx
-import { ChaosProvider, ChaosControlPanel } from './lib';
+import { ChaosProvider, ChaosControlPanel } from 'chaos-on-front';
 
 function App() {
   return (
@@ -59,7 +59,7 @@ function App() {
 ### Programmatic API
 
 ```ts
-import { corruptData, withChaos, useChaosCrash, useChaos, unleashNow } from './lib';
+import { corruptData, withChaos, useChaosCrash, useChaos, unleashNow } from 'chaos-on-front';
 
 corruptData(apiResponse);          // randomly nulls/ deletes/ mistypes fields
 const Risky = withChaos(MyComp);   // may randomly throw during render
@@ -68,26 +68,16 @@ useChaos();                        // full Zustand store access
 unleashNow();                      // fire one chaos probe immediately
 ```
 
-### Option 2: Install from npm (after publishing)
+### Option 2: Copy the source
 
-This repo is already set up for publishing — `npm run build:lib` produces `dist-lib/` with ESM + CJS + TypeScript declarations, and `package.json` has the `exports`/`types`/`peerDependencies` fields wired. Once it's published, the setup becomes:
-
-```bash
-npm install -D chaos-on-front zustand
-```
-
-```tsx
-import { ChaosProvider, ChaosControlPanel } from 'chaos-on-front';
-```
-
-A dev-only install is appropriate — neither the provider nor the panel should be mounted in production builds.
+Prefer vendoring, or need to hack on the internals? Copy `src/lib/` from [the repo](https://github.com/Porterfrag/chaos_on_front) into your project (e.g. `your-app/src/lib/`), install the peer dependency (`npm install zustand`), and import from `./lib` instead of `'chaos-on-front'`. Add Tailwind **only if** you want the built-in control panel — skip it if you'll drive chaos from your own dev toolbar.
 
 ### Driving chaos from code
 
 Skip the panel entirely and control everything programmatically — useful for a "chaos mode" toggle in your own dev toolbar or Storybook:
 
 ```ts
-import { useChaosStore } from './lib';
+import { useChaosStore } from 'chaos-on-front';
 
 useChaosStore.getState().setEnabled(true);
 useChaosStore.getState().applyPreset('latency-storm');
@@ -121,9 +111,14 @@ src/lib/
 npm test   # Vitest: 30 tests across core, injectors, store, and React components
 ```
 
-## Publishing (later)
+## Releasing a new version (maintainers)
 
-`npm run build:lib` compiles `src/lib` into `dist-lib/` (ESM + CJS + `.d.ts`, react/zustand externalized) and the `exports`/`types`/`peerDependencies` fields are already wired in `package.json` — it's ready for `npm publish` whenever you want to split it into its own package.
+`npm run build:lib` compiles `src/lib` into `dist-lib/` (ESM + CJS + `.d.ts`, react/zustand externalized). Publishing is guarded by a `prepublishOnly` hook (`typecheck` + `build:lib`), so `npm publish` always ships a fresh build:
+
+```bash
+npm version patch   # or minor / major
+npm publish
+```
 
 ## Notes & caveats
 
